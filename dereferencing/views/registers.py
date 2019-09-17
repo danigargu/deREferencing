@@ -304,15 +304,18 @@ class FlagsView(idaapi.simplecustviewer_t):
 
         self.ClearLines()
         for flag in dbg.registers.flags:
-            value = idc.GetRegValue(flag)
-            result = None
+            try:
+                value = idc.GetRegValue(flag)
+                result = None
 
-            if self.flag_vals[flag] != value:
-                result = self.as_changed(str(value))
-                self.flag_vals[flag] = value
-            else:
-                result = str(value)
-            self.add_line('%-4s %s' % (flag, result))
+                if self.flag_vals[flag] != value:
+                    result = self.as_changed(str(value))
+                    self.flag_vals[flag] = value
+                else:
+                    result = str(value)
+                self.add_line('%-4s %s' % (flag, result))
+            except:
+                pass
 
         return True
 
