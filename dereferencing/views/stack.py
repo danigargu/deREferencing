@@ -121,7 +121,7 @@ class StackViewer(CustViewer):
 
         base_addr = None
         if self.base_expr is None:
-            base_addr = idc.GetRegValue(dbg.registers.stack)
+            base_addr = idc.get_reg_value(dbg.registers.stack)
         else:
             base_addr = idaapi.str2ea(self.base_expr)
             if base_addr == idc.BADADDR:
@@ -136,7 +136,7 @@ class StackViewer(CustViewer):
         dbg.set_thread_info()
 
         try:
-            segm_end = idc.SegEnd(base_addr)
+            segm_end = idc.get_segm_end(base_addr)
             n_entries = config.n_stack_entries or ((segm_end-base_addr) // dbg.ptr_size)
 
             for i in range(n_entries):
@@ -146,7 +146,7 @@ class StackViewer(CustViewer):
                 if not idaapi.is_loaded(ptr):
                     break
 
-                value = idc.Qword(ptr)
+                value = idc.get_qword(ptr)
                 self.add_line("%02d:%04X  %s" % (i, offset, self.parse_value(ptr)))
 
         except Exception as e:
