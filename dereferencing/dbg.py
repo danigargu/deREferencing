@@ -180,7 +180,7 @@ def GetLastError():
 def GetLastErrorEx():
     tib_ea = get_thread_tib(idaapi.get_current_thread())
     if tib_ea:
-        return idc.Dword(tib_ea+0x34)
+        return idc.get_wide_dword(tib_ea+0x34)
     return None
 
 def set_thread_info():
@@ -199,12 +199,12 @@ def initialize():
     info = idaapi.get_inf_structure()
     if info.is_64bit():
         m.ptr_size = 8
-        m.get_ptr = idc.Qword
+        m.get_ptr = idc.get_qword
         m.mem_fmt = "%016X"
         m.pack_fmt = "<Q"
     elif info.is_32bit():
         m.ptr_size = 4
-        m.get_ptr = idc.Dword
+        m.get_ptr = idc.get_wide_dword
         m.mem_fmt = "%08X"
         m.pack_fmt = "<L"
 

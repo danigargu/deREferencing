@@ -8,6 +8,8 @@ import re
 import string
 
 import idc
+import ida_bytes
+import ida_nalt
 import idaapi
 import idautils
 
@@ -30,10 +32,10 @@ def get_value_type(ea):
     if not idaapi.is_loaded(ea):
         return addr_type
 
-    segm_name = idc.SegName(ea)
+    segm_name = idc.get_segm_name(ea)
     segm = idaapi.getseg(ea)
-    flags = idc.GetFlags(ea)
-    is_code = idc.isCode(flags)
+    flags = idc.get_full_flags(ea)
+    is_code = idc.is_code(flags)
 
     if "stack" in segm_name.lower() or \
     (dbg.stack_segm and dbg.stack_segm.start_ea == segm.start_ea):
@@ -180,8 +182,8 @@ class Colorizer(object):
         return ' %s ("%s")' % (self.arrow, value)
 
     def is_code(self, ea):
-        flags = idc.GetFlags(ea)
-        return idc.isCode(flags)
+        flags = idc.get_full_flags(ea)
+        return idc.is_code(flags)
 
     def is_ascii(self, s):
         return all(ord(c) < 127 and ord(c) >= 32 for c in s)
@@ -200,9 +202,9 @@ class Colorizer(object):
         return self.strip_disas_spaces(d)
 
     def get_string(self, ea):
-        res = idc.GetString(ea)
+        res = ida_bytes.get_strlit_contents(ea, -1, ida_nalt.STRTYPE_C_16)
         if res and len(res) == 1:
-            res = idc.GetString(ea, -1, idc.ASCSTR_UNICODE)
+            res = ida_bytes.get_strlit_contents(ea, -1, ida_nalt.STRTYPE_C_16)
         return res
 
     def get_printable(self, val):
@@ -214,7 +216,7 @@ class Colorizer(object):
     def get_area_name(self, ea, val_type):
         name = None
         if val_type == T_CODE:
-            fcn_name = idc.GetFuncOffset(ea)
+            fcn_name = idc.get_func_off_str(ea)
             if fcn_name:
                 name = fcn_name
             else:
@@ -226,7 +228,7 @@ class Colorizer(object):
             if symbol_name:
                 name = symbol_name
 
-        seg_name = idc.SegName(ea)
+        seg_name = idc.get_segm_name(ea)
         if seg_name is not None:
             if name:
                 name = "%s ! %s" % (seg_name, name)

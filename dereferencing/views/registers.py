@@ -96,7 +96,7 @@ class RegistersViewer(CustViewer):
         result = ''
         reduced = False
 
-        reg_val = idc.GetRegValue(reg)
+        reg_val = idc.get_reg_value(reg)
         label, changed = self.get_reg_label(reg, reg_val)
         chain = self.get_ptr_chain(reg_val)
 
@@ -126,7 +126,7 @@ class RegistersViewer(CustViewer):
         if not reg:
             return
 
-        reg_val = idc.GetRegValue(reg)
+        reg_val = idc.get_reg_value(reg)
         b = idc.AskStr("0x%X" % reg_val, "Modify register value")
         if b is not None:
             try:
@@ -305,7 +305,7 @@ class FlagsView(idaapi.simplecustviewer_t):
         self.ClearLines()
         for flag in dbg.registers.flags:
             try:
-                value = idc.GetRegValue(flag)
+                value = idc.get_reg_value(flag)
                 result = None
 
                 if self.flag_vals[flag] != value:
