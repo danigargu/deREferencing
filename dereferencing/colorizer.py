@@ -42,21 +42,22 @@ def get_value_type(ea):
     elif "heap" in segm_name.lower():
         addr_type = T_HEAP
 
-    elif not is_code and segm.perm & idaapi.SEGPERM_READ and \
-    segm.perm & idaapi.SEGPERM_WRITE and \
-    segm.perm & idaapi.SEGPERM_EXEC:
-        addr_type = T_RWX
+    elif segm != None:
+        if not is_code and segm.perm & idaapi.SEGPERM_READ and \
+        segm.perm & idaapi.SEGPERM_WRITE and \
+        segm.perm & idaapi.SEGPERM_EXEC:
+            addr_type = T_RWX
 
-    elif is_code or \
-    (segm.perm & idaapi.SEGPERM_READ and segm.perm & idaapi.SEGPERM_EXEC):
-        addr_type = T_CODE
+        elif is_code or \
+        (segm.perm & idaapi.SEGPERM_READ and segm.perm & idaapi.SEGPERM_EXEC):
+            addr_type = T_CODE
 
-    elif segm.perm & idaapi.SEGPERM_READ and \
-    segm.perm & idaapi.SEGPERM_WRITE:
-        addr_type = T_DATA
+        elif segm.perm & idaapi.SEGPERM_READ and \
+        segm.perm & idaapi.SEGPERM_WRITE:
+            addr_type = T_DATA
 
-    elif segm.perm & idaapi.SEGPERM_READ:
-        addr_type = T_RODATA
+        elif segm.perm & idaapi.SEGPERM_READ:
+            addr_type = T_RODATA
 
     return addr_type
 
