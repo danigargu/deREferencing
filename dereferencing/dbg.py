@@ -9,7 +9,6 @@ import struct
 
 import idaapi
 import idc
-import ida_dbg
 
 from dereferencing import regs
 
@@ -32,16 +31,16 @@ m = sys.modules[__name__]
 
 # -----------------------------------------------------------------------
 class DbgHooks(idaapi.DBG_Hooks):
-    last_tid = None
-    timer = None
-    timer_freq = 1000/4
     def __init__(self, callback):
         super(DbgHooks, self).__init__()
         self.from_attach = False
         self.callback = callback
+        self.last_tid = idaapi.get_current_thread()
+        self.timer_freq = 1000/4
+        self.timer = None
 
     def hook(self, *args):
-        self.timer = idaapi.register_timer(self.timer_freq, self.check_thread)
+        #self.timer = idaapi.register_timer(self.timer_freq, self.check_thread)
         super(DbgHooks, self).hook(*args)
 
     def unhook(self, *args):
@@ -50,10 +49,9 @@ class DbgHooks(idaapi.DBG_Hooks):
         super(DbgHooks, self).unhook(*args)
 
     def check_thread(self):
-        tid = ida_dbg.get_current_thread()
+        tid = idaapi.get_current_thread()
         if self.last_tid != tid:
-            idaapi.refresh_debugger_memory()
-            self.callback()
+            self.notify()
             self.last_tid = tid
         return self.timer_freq
 
@@ -113,7 +111,6 @@ def get_hardware_info():
     info = idaapi.get_inf_structure()
     cpuname = info.procname.lower()
     #TODO
-
 
 def supported_cpu():
     info = idaapi.get_inf_structure()

@@ -72,7 +72,8 @@ class RegistersViewer(CustViewer):
 
         for reg in dbg.registers:
             line, changed = self.colorize_register(reg)
-            self.add_line(line, changed)
+            if line is not None:
+                self.add_line(line, changed)
 
         if dbg.is_pefile:
             self.add_line(*self.last_error_str())
@@ -96,7 +97,11 @@ class RegistersViewer(CustViewer):
         result = ''
         reduced = False
 
-        reg_val = idc.get_reg_value(reg)
+        try:
+            reg_val = idc.get_reg_value(reg)
+        except:
+            return None, False
+
         label, changed = self.get_reg_label(reg, reg_val)
         chain = self.get_ptr_chain(reg_val)
 
@@ -127,11 +132,11 @@ class RegistersViewer(CustViewer):
             return
 
         reg_val = idc.get_reg_value(reg)
-        b = idc.AskStr("0x%X" % reg_val, "Modify register value")
+        b = idaapi.ask_str("0x%X" % reg_val, 0, "Modify register value")
         if b is not None:
             try:
                 value = int(idaapi.str2ea(b))
-                idc.SetRegValue(value, reg)
+                idc.set_reg_value(value, reg)
                 self.reload_info()
 
                 if reg == dbg.registers.flags:
@@ -161,7 +166,7 @@ class RegistersViewer(CustViewer):
             return
 
         val = dbg.to_uint(~self.reg_vals[reg])
-        idc.SetRegValue(val, reg)
+        idc.set_reg_value(val, reg)
         self.reload_info()
 
     def inc_reg(self):
@@ -170,7 +175,7 @@ class RegistersViewer(CustViewer):
             return
 
         val = dbg.to_uint(self.reg_vals[reg]+1)
-        idc.SetRegValue(val, reg)
+        idc.set_reg_value(val, reg)
         self.reload_info()
 
     def dec_reg(self):
@@ -179,7 +184,7 @@ class RegistersViewer(CustViewer):
             return
 
         val = dbg.to_uint(self.reg_vals[reg]-1)
-        idc.SetRegValue(val, reg)
+        idc.set_reg_value(val, reg)
         self.reload_info()
 
     def zero_reg(self):
@@ -187,11 +192,11 @@ class RegistersViewer(CustViewer):
         if not reg:
             return
 
-        idc.SetRegValue(0, reg)
+        idc.set_reg_value(0, reg)
         self.reload_info()
 
     def set_deref_levels(self):
-        value = idc.AskLong(config.max_deref_levels, "Set current dereferencing levels to show")
+        value = idaapi.ask_long(config.max_deref_levels, "Set current dereferencing levels to show")
         if value is not None:
             if value < 0:
                 idaapi.warning("Negative values are not allowed")
@@ -337,7 +342,7 @@ class FlagsView(idaapi.simplecustviewer_t):
         flag = line[:4].strip()
         new_val = not self.flag_vals[flag]
 
-        rc = idc.SetRegValue(int(new_val), flag)
+        rc = idc.set_reg_value(int(new_val), flag)
         if not rc:
             idaapi.warning("Unable to update the register value")
             return

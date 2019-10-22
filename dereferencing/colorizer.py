@@ -8,8 +8,6 @@ import re
 import string
 
 import idc
-import ida_bytes
-import ida_nalt
 import idaapi
 import idautils
 
@@ -44,7 +42,7 @@ def get_value_type(ea):
     elif "heap" in segm_name.lower():
         addr_type = T_HEAP
 
-    elif segm != None:
+    elif segm is not None:
         if not is_code and segm.perm & idaapi.SEGPERM_READ and \
         segm.perm & idaapi.SEGPERM_WRITE and \
         segm.perm & idaapi.SEGPERM_EXEC:
@@ -202,9 +200,9 @@ class Colorizer(object):
         return self.strip_disas_spaces(d)
 
     def get_string(self, ea):
-        res = ida_bytes.get_strlit_contents(ea, -1, ida_nalt.STRTYPE_C_16)
+        res = idc.get_strlit_contents(ea)
         if res and len(res) == 1:
-            res = ida_bytes.get_strlit_contents(ea, -1, ida_nalt.STRTYPE_C_16)
+            res = idc.get_strlit_contents(ea, -1, idc.STRTYPE_C_16)
         return res
 
     def get_printable(self, val):

@@ -25,7 +25,7 @@ class StackViewer(CustViewer):
 
     def jump_to(self):
         current = self.base_expr if self.base_expr is not None else ""
-        b = idc.AskStr(current, "Sync with")
+        b = idaapi.ask_str(current, 0, "Sync with")
         if b and len(b) > 0:
             try:
                 self.base_expr = b
@@ -36,7 +36,7 @@ class StackViewer(CustViewer):
             self.base_addr = None
 
     def set_stack_entries(self):
-        value = idc.AskLong(config.n_stack_entries, "Set the number of stack entries to show")
+        value = idaapi.ask_long(config.n_stack_entries, "Set the number of stack entries to show")
         if value is not None:
             if value <= 0:
                 idaapi.warning("Negative values are not allowed")
@@ -146,7 +146,7 @@ class StackViewer(CustViewer):
                 if not idaapi.is_loaded(ptr):
                     break
 
-                value = idc.get_qword(ptr)
+                value = dbg.get_ptr(ptr)
                 self.add_line("%02d:%04X  %s" % (i, offset, self.parse_value(ptr)))
 
         except Exception as e:
