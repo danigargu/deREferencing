@@ -56,7 +56,7 @@ class DbgHooks(idaapi.DBG_Hooks):
         return self.timer_freq
 
     def notify(self):
-        idaapi.refresh_debugger_memory()
+        #idaapi.refresh_debugger_memory()
         self.callback()
 
     def dbg_step_into(self):
