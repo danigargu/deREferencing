@@ -191,7 +191,10 @@ class Colorizer(object):
             return all(ord(c) < 127 and ord(c) >= 32 for c in s)
 
     def is_printable(self, s):
-        return all(c in string.printable for c in s)
+        if sys.version_info >= (3, 0):
+            return all(chr(c) in string.printable for c in s)
+        else:
+            return all(c in string.printable for c in s)
 
     def strip_disas_spaces(self, d):
         return re.sub(' +', ' ', d)
