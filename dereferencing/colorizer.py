@@ -5,6 +5,7 @@
 #
 
 import re
+import sys
 import string
 
 import idc
@@ -184,10 +185,16 @@ class Colorizer(object):
         return idc.is_code(flags)
 
     def is_ascii(self, s):
-        return all(ord(c) < 127 and ord(c) >= 32 for c in s)
+        if sys.version_info >= (3, 0):
+            return all(c < 127 and c >= 32 for c in s)
+        else:
+            return all(ord(c) < 127 and ord(c) >= 32 for c in s)
 
     def is_printable(self, s):
-        return all(c in string.printable for c in s)
+        if sys.version_info >= (3, 0):
+            return all(chr(c) in string.printable for c in s)
+        else:
+            return all(c in string.printable for c in s)
 
     def strip_disas_spaces(self, d):
         return re.sub(' +', ' ', d)
@@ -206,7 +213,7 @@ class Colorizer(object):
         return res
 
     def get_printable(self, val):
-        packed = dbg.pack(val).replace('\x00', '')
+        packed = dbg.pack(val).replace(b'\x00', b'')
         if len(packed) > 0 and self.is_ascii(packed):
             return self.as_comment(' /* %s */' % repr(packed))
         return ''

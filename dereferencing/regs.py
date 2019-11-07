@@ -22,7 +22,7 @@ class RegisterSet(object):
         self.flagsr = flagsr
         self.args = args
         self.all = common + (frame, stack, pc, flagsr)
-        self.all = filter(None, self.all)
+        self.all = list(filter(None, self.all))
         self.max_len = max(map(len, self.all))
 
     def __len__(self):
