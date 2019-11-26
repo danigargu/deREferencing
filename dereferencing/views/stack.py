@@ -6,6 +6,7 @@
 
 import idc
 import idaapi
+import ida_bytes
 
 from dereferencing import dbg, config, actions
 
@@ -46,6 +47,20 @@ class StackViewer(CustViewer):
             return True
         return False
 
+    def modify_value(self):
+        ea = self.get_current_expr_ea()
+        if not ea or not idaapi.is_loaded(ea):
+            return
+        stack_val = ida_bytes.get_dword(ea)
+        b = idaapi.ask_str("0x%X" % stack_val, 0, "Modify value")
+        if b is not None:
+            try:
+                value = int(idaapi.str2ea(b))
+                idc.patch_dword(ea, value)
+                self.reload_info()
+            except:
+                idaapi.warning("Invalid expression")
+                
     def can_edit_line(self):
         return True
 
@@ -56,6 +71,7 @@ class StackViewer(CustViewer):
             actions.MenuAction("s_jump_new_window",  self.jump_in_new_window,  "Jump in a new window", None, "Ctrl-J",    125),
             actions.MenuAction("s_jump_hex",         self.jump_in_hex,         "Jump in hex",          None, "X",         89),
             actions.MenuAction("s_jump_to",          self.jump_to,             "Sync with expr",       shortcut="G", icon=124),
+            actions.MenuAction("s_modify_value",     self.modify_value,        "Modify value",         None, "E",         104),
             actions.MenuAction("s_stack_entries",    self.set_stack_entries,   "Stack entries"),
             actions.MenuAction("-"),
         ])
