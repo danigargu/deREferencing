@@ -51,12 +51,19 @@ class StackViewer(CustViewer):
         ea = self.get_current_expr_ea()
         if not ea or not idaapi.is_loaded(ea):
             return
-        stack_val = ida_bytes.get_dword(ea)
+        stack_val = 0
+        if idaapi.inf_is_64bit():
+            stack_val = ida_bytes.get_qword(ea)
+        else:
+            stack_val = ida_bytes.get_dword(ea)
         b = idaapi.ask_str("0x%X" % stack_val, 0, "Modify value")
         if b is not None:
             try:
                 value = int(idaapi.str2ea(b))
-                idc.patch_dword(ea, value)
+                if idaapi.inf_is_64bit():
+                    idc.patch_qword(ea, value)
+                else:
+                    idc.patch_dword(ea, value)
                 self.reload_info()
             except:
                 idaapi.warning("Invalid expression")
