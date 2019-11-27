@@ -129,6 +129,7 @@ class DBG_HOOK(idaapi.DBG_Hooks):
         Registers.activate(None)
         Stack = StartHandler("deREferencing - Stack")
         Stack.activate(None)
+        idaapi.switchto_tform(idaapi.find_tform("IDA View-EIP"), True)
         return 0
 # -----------------------------------------------------------------------
 def PLUGIN_ENTRY():
