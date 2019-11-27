@@ -443,7 +443,7 @@ class RegsFlagsViewer(idaapi.PluginForm):
 
         if regs_widget:
             idaapi.set_dock_pos(REGS_WIDGET_TITLE, "General registers", idaapi.DP_INSIDE)
-            idaapi.close_widget(regs_widget, 0)
+            #idaapi.close_widget(regs_widget, 0)
         else:
             found = False
             for wname, pos in ref_widgets:
@@ -454,9 +454,10 @@ class RegsFlagsViewer(idaapi.PluginForm):
             if not found:
                 idaapi.set_dock_pos(REGS_WIDGET_TITLE, None, idaapi.DP_FLOATING)
 
+
+
     def OnClose(self, form):
         if self.hook:
             self.hook.unhook()
 
 # -----------------------------------------------------------------------
-
