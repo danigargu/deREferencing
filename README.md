@@ -8,7 +8,7 @@ Supports following architectures: **x86, x86-64, ARM, ARM64, MIPS32 and MIPS64**
 
 ## Requirements
 
-* IDA-Pro >= 7.2
+* IDA-Pro >= 7.1
 
 ## Install
 
