@@ -52,6 +52,16 @@ class StartHandler(idaapi.action_handler_t):
         return idaapi.AST_ENABLE_ALWAYS
 
 # -----------------------------------------------------------------------
+class DbgHook(idaapi.DBG_Hooks):
+    def dbg_bpt(self, tid, ea):
+        Registers = StartHandler(REGS_WIDGET_TITLE)
+        Registers.activate(None)
+        Stack = StartHandler(STACK_WIDGET_TITLE)
+        Stack.activate(None)
+        idaapi.activate_widget(idaapi.find_widget("IDA View-EIP"), True)
+        return 0
+
+# -----------------------------------------------------------------------
 def register_munu_actions():
     act_registers = '%s:registers' % PLUGIN_NAME
     act1 = idaapi.action_desc_t(
@@ -87,6 +97,17 @@ def register_desktop_hooks():
     h.hook()
 
 # -----------------------------------------------------------------------
+def register_dbg_hook():
+    global dbg_hook
+    try:
+        if dbg_hook:
+            dbg_hook.unhook()
+    except:
+        pass
+    dbg_hook = DbgHook()
+    dbg_hook.hook()
+
+# -----------------------------------------------------------------------
 class populate_desktop_hooks_t(idaapi.UI_Hooks):
     def create_desktop_widget(self, title, cfg):
         if title == REGS_WIDGET_TITLE:
@@ -108,10 +129,10 @@ class deREferencing_plugin_t(idaapi.plugin_t):
     wanted_hotkey = ""
 
     def init(self):
-
         if not dbg.supported_cpu():
             return idaapi.PLUGIN_SKIP
 
+        register_dbg_hook()
         register_munu_actions()
         register_desktop_hooks()
 
@@ -122,24 +143,9 @@ class deREferencing_plugin_t(idaapi.plugin_t):
 
     def term(self):
         detach_menu_actions()
-
-class DBG_HOOK(idaapi.DBG_Hooks):
-    def dbg_bpt(self, tid, ea):
-        Registers = StartHandler("deREferencing - Registers")
-        Registers.activate(None)
-        Stack = StartHandler("deREferencing - Stack")
-        Stack.activate(None)
-        idaapi.switchto_tform(idaapi.find_tform("IDA View-EIP"), True)
-        return 0
+        
 # -----------------------------------------------------------------------
 def PLUGIN_ENTRY():
-    try:
-        if idaapi.debughook:
-            idaapi.debughook.unhook()
-    except:
-        pass
-    idaapi.debughook = DBG_HOOK()
-    idaapi.debughook.hook()
     return deREferencing_plugin_t()
 
 # -----------------------------------------------------------------------
