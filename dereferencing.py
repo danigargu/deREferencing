@@ -91,7 +91,7 @@ class populate_desktop_hooks_t(idaapi.UI_Hooks):
     def create_desktop_widget(self, title, cfg):
         if title == REGS_WIDGET_TITLE:
             w = RegsFlagsViewer()
-            w.Show(REGS_WIDGET_TITLE, options=idaapi.PluginForm.WOPN_CREATE_ONLY)
+            w.Show(REGS_WIDGET_TITLE, options=idaapi.PluginForm.WOPN_CENTERED)
             return w.GetWidget()
 
         elif title == STACK_WIDGET_TITLE:
@@ -108,6 +108,7 @@ class deREferencing_plugin_t(idaapi.plugin_t):
     wanted_hotkey = ""
 
     def init(self):
+
         if not dbg.supported_cpu():
             return idaapi.PLUGIN_SKIP
 
@@ -122,9 +123,23 @@ class deREferencing_plugin_t(idaapi.plugin_t):
     def term(self):
         detach_menu_actions()
 
+class DBG_HOOK(idaapi.DBG_Hooks):
+    def dbg_bpt(self, tid, ea):
+        Registers = StartHandler("deREferencing - Registers")
+        Registers.activate(None)
+        Stack = StartHandler("deREferencing - Stack")
+        Stack.activate(None)
+        idaapi.switchto_tform(idaapi.find_tform("IDA View-EIP"), True)
+        return 0
 # -----------------------------------------------------------------------
 def PLUGIN_ENTRY():
+    try:
+        if idaapi.debughook:
+            idaapi.debughook.unhook()
+    except:
+        pass
+    idaapi.debughook = DBG_HOOK()
+    idaapi.debughook.hook()
     return deREferencing_plugin_t()
 
 # -----------------------------------------------------------------------
-

@@ -190,7 +190,7 @@ class StackViewer(CustViewer):
         stack_view = idaapi.find_widget("Stack view")
         if stack_view:
             idaapi.set_dock_pos(STACK_WIDGET_TITLE, "Stack view", idaapi.DP_INSIDE)
-            idaapi.close_widget(stack_view, 0)
+            #idaapi.close_widget(stack_view, 0)
         else:
             idaapi.set_dock_pos(STACK_WIDGET_TITLE, REGS_WIDGET_TITLE, idaapi.DP_BOTTOM)
 
