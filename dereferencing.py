@@ -112,7 +112,7 @@ class populate_desktop_hooks_t(idaapi.UI_Hooks):
     def create_desktop_widget(self, title, cfg):
         if title == REGS_WIDGET_TITLE:
             w = RegsFlagsViewer()
-            w.Show(REGS_WIDGET_TITLE, options=idaapi.PluginForm.WOPN_CENTERED)
+            w.Show(REGS_WIDGET_TITLE, options=idaapi.PluginForm.WOPN_CREATE_ONLY)
             return w.GetWidget()
 
         elif title == STACK_WIDGET_TITLE:
