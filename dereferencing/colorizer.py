@@ -200,6 +200,8 @@ class Colorizer(object):
         return re.sub(' +', ' ', d)
 
     def strip_str(self, d, rep='*'):
+        if sys.version_info >= (3, 0):
+            d = d.decode("utf-8")
         return repr(d).replace("'","")
 
     def get_disasm(self, ea):
