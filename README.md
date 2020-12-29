@@ -32,7 +32,7 @@ You also can save the desktop layout using the `Windows -> Save desktop` option,
 
 ## Configuration
 
-Config options can be modified vía `deferencing/config.py` file.
+Config options can be modified via `deferencing/config.py` file.
 
 ### Snapshots
 
