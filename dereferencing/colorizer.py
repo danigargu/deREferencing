@@ -37,7 +37,7 @@ def get_value_type(ea):
     is_code = idc.is_code(flags)
 
     if "stack" in segm_name.lower() or \
-    (dbg.stack_segm and dbg.stack_segm.start_ea == segm.start_ea):
+    (dbg.stack_segm and segm and dbg.stack_segm.start_ea == segm.start_ea):
         addr_type = T_STACK
 
     elif "heap" in segm_name.lower():
