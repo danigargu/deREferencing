@@ -33,27 +33,15 @@ m = sys.modules[__name__]
 class DbgHooks(idaapi.DBG_Hooks):
     def __init__(self, callback):
         super(DbgHooks, self).__init__()
-        self.from_attach = False
         self.callback = callback
-        self.last_tid = idaapi.get_current_thread()
-        self.timer_freq = 1000/4
-        self.timer = None
 
     def hook(self, *args):
-        #self.timer = idaapi.register_timer(self.timer_freq, self.check_thread)
         super(DbgHooks, self).hook(*args)
 
     def unhook(self, *args):
         if self.timer != None:
             idaapi.unregister_timer(self.timer)
         super(DbgHooks, self).unhook(*args)
-
-    def check_thread(self):
-        tid = idaapi.get_current_thread()
-        if self.last_tid != tid:
-            self.notify()
-            self.last_tid = tid
-        return self.timer_freq
 
     def notify(self):
         idaapi.refresh_debugger_memory()
@@ -72,13 +60,11 @@ class DbgHooks(idaapi.DBG_Hooks):
         return 0
 
     def dbg_process_attach(self, pid, tid, ea, name, base, size):
-        self.from_attach = True
+        self.notify()
 
     def dbg_suspend_process(self):
-        if self.from_attach:
-            self.from_attach = False
-            self.notify()
-
+        self.notify()
+    
     def dbg_exception(self, pid, tid, ea, exc_code, exc_can_cont, exc_ea, exc_info):
         self.callback()
         # return values:
@@ -95,7 +81,6 @@ class DbgHooks(idaapi.DBG_Hooks):
     def dbg_step_until_ret(self):
         self.notify()
         return 0
-
 # -----------------------------------------------------------------------
 def get_ptrsize():
     info = idaapi.get_inf_structure()
