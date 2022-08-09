@@ -39,8 +39,6 @@ class DbgHooks(idaapi.DBG_Hooks):
         super(DbgHooks, self).hook(*args)
 
     def unhook(self, *args):
-        if self.timer != None:
-            idaapi.unregister_timer(self.timer)
         super(DbgHooks, self).unhook(*args)
 
     def notify(self):
