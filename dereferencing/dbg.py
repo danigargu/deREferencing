@@ -33,68 +33,23 @@ m = sys.modules[__name__]
 class DbgHooks(idaapi.DBG_Hooks):
     def __init__(self, callback):
         super(DbgHooks, self).__init__()
-        self.from_attach = False
         self.callback = callback
-        self.last_tid = idaapi.get_current_thread()
-        self.timer_freq = 1000/4
-        self.timer = None
 
     def hook(self, *args):
-        #self.timer = idaapi.register_timer(self.timer_freq, self.check_thread)
         super(DbgHooks, self).hook(*args)
 
     def unhook(self, *args):
-        if self.timer != None:
-            idaapi.unregister_timer(self.timer)
         super(DbgHooks, self).unhook(*args)
-
-    def check_thread(self):
-        tid = idaapi.get_current_thread()
-        if self.last_tid != tid:
-            self.notify()
-            self.last_tid = tid
-        return self.timer_freq
 
     def notify(self):
         idaapi.refresh_debugger_memory()
         self.callback()
 
-    def dbg_step_into(self):
+    def dbg_suspend_process(self):
         self.notify()
-        return 0
-
-    def dbg_step_over(self):
-        self.notify()
-        return 0
-
-    def dbg_run_to(self, pid, tid=0, ea=0):
-        self.notify()
-        return 0
 
     def dbg_process_attach(self, pid, tid, ea, name, base, size):
-        self.from_attach = True
-
-    def dbg_suspend_process(self):
-        if self.from_attach:
-            self.from_attach = False
-            self.notify()
-
-    def dbg_exception(self, pid, tid, ea, exc_code, exc_can_cont, exc_ea, exc_info):
-        self.callback()
-        # return values:
-        #   -1 - to display an exception warning dialog
-        #        if the process is suspended.
-        #   0  - to never display an exception warning dialog.
-        #   1  - to always display an exception warning dialog.
-        return -1
-
-    def dbg_bpt(self, tid, bptea):
         self.notify()
-        return 0
-
-    def dbg_step_until_ret(self):
-        self.notify()
-        return 0
 
 # -----------------------------------------------------------------------
 def get_ptrsize():
@@ -106,12 +61,7 @@ def get_ptrsize():
         ptr_size = 4
     return ptr_size
 
-def get_hardware_info():
-    is_be = idaapi.cvar.inf.mf
-    info = idaapi.get_inf_structure()
-    cpuname = info.procname.lower()
-    #TODO
-
+# -----------------------------------------------------------------------
 def supported_cpu():
     info = idaapi.get_inf_structure()
     cpuname = info.procname.lower()
@@ -119,6 +69,7 @@ def supported_cpu():
         return True
     return False
 
+# -----------------------------------------------------------------------
 def get_thread_tib(tid):
     tib_segm_name = "TIB[%08X]" % tid
     tib_segm = idaapi.get_segm_by_name(tib_segm_name)
@@ -137,6 +88,7 @@ def get_thread_tib(tid):
         ea += 0x1000
     return tib
 
+# -----------------------------------------------------------------------
 def get_stack_segment():
     thread_id = idaapi.get_current_thread()
     tib_ea = get_thread_tib(thread_id)
@@ -146,6 +98,7 @@ def get_stack_segment():
         return idaapi.getseg(stack_limit)
     return None
 
+# -----------------------------------------------------------------------
 def get_last_error():
     thread_id = idaapi.get_current_thread()
     tib_ea = get_thread_tib(thread_id)
@@ -154,32 +107,40 @@ def get_last_error():
         return m.get_ptr(tib_ea + offset)
     return None
 
+# -----------------------------------------------------------------------
 def format_ptr(x):
     return m.mem_fmt % x
 
+# -----------------------------------------------------------------------
 def pack(val):
     return struct.pack(m.pack_fmt, val)
 
+# -----------------------------------------------------------------------
 def to_uint(val):
     if m.ptr_size == 4:
         return val & 0xFFFFFFFF
     return val & 0xFFFFFFFFFFFFFFFF
 
+# -----------------------------------------------------------------------
 def is_process_suspended():
     return (idaapi.get_process_state() == -1)
 
+# -----------------------------------------------------------------------
 def NtCurrentTeb():
     return idaapi.Appcall.proto("ntdll_NtCurrentTeb", "DWORD __stdcall NtCurrentTeb(void);")()
 
+# -----------------------------------------------------------------------
 def GetLastError():
     return idaapi.Appcall.proto("kernel32_GetLastError", "DWORD __stdcall GetLastError();")()
 
+# -----------------------------------------------------------------------
 def GetLastErrorEx():
     tib_ea = get_thread_tib(idaapi.get_current_thread())
     if tib_ea:
         return idc.get_wide_dword(tib_ea+0x34)
     return None
 
+# -----------------------------------------------------------------------
 def set_thread_info():
     if m.is_pefile:
         current_thread_id = idaapi.get_current_thread()
@@ -189,6 +150,7 @@ def set_thread_info():
     elif m.filetype == idaapi.f_ELF:
         pass
 
+# -----------------------------------------------------------------------
 def initialize():
     if m.initialized:
         return
