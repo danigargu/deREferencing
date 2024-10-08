@@ -7,8 +7,9 @@
 import sys
 import struct
 
-import idaapi
+import ida_ida
 import idc
+import idaapi
 
 from dereferencing import regs
 
@@ -53,18 +54,17 @@ class DbgHooks(idaapi.DBG_Hooks):
 
 # -----------------------------------------------------------------------
 def get_ptrsize():
-    info = idaapi.get_inf_structure()
     ptr_size = None
-    if info.is_64bit():
+    if ida_ida.inf_is_64bit():
         ptr_size = 8
-    elif info.is_32bit():
+    elif ida_ida.inf_is_32bit_exactly():
         ptr_size = 4
     return ptr_size
 
 # -----------------------------------------------------------------------
 def supported_cpu():
-    info = idaapi.get_inf_structure()
-    cpuname = info.procname.lower()
+    info = ida_ida.inf_get_procname()
+    cpuname = info.lower()
     if cpuname == "metapc" or cpuname.startswith("arm") or cpuname.startswith("mips"):
         return True
     return False
@@ -155,23 +155,32 @@ def initialize():
     if m.initialized:
         return
         
-    info = idaapi.get_inf_structure()
-    if info.is_64bit():
+    # fix ida9
+    info = ida_ida.inf_get_procname()
+    is_64bit = ida_ida.inf_is_64bit()
+    is_32bit = ida_ida.inf_is_32bit_exactly()
+    cpu_name = info.lower()
+    is_be = ida_ida.inf_is_be()
+    filetype = ida_ida.inf_get_filetype()
+    is_pefile = (filetype == ida_ida.f_PE)
+    thread_id = idaapi.get_screen_ea()
+
+    if is_64bit:
         m.ptr_size = 8
         m.get_ptr = idc.get_qword
         m.mem_fmt = "%016X"
         m.pack_fmt = "<Q"
-    elif info.is_32bit():
+    elif is_32bit:
         m.ptr_size = 4
         m.get_ptr = idc.get_wide_dword
         m.mem_fmt = "%08X"
         m.pack_fmt = "<L"
 
-    m.cpu_name = info.procname.lower()
-    m.is_be = idaapi.cvar.inf.is_be()
-    m.filetype = info.filetype
-    m.is_pefile = (m.filetype == idaapi.f_PE)
-    m.thread_id = idaapi.get_current_thread()
+    m.cpu_name = cpu_name
+    m.is_be = is_be
+    m.filetype = filetype
+    m.is_pefile = is_pefile
+    m.thread_id = thread_id
 
     if m.cpu_name == "metapc":
         m.registers = {
@@ -190,4 +199,3 @@ def initialize():
     m.initialized = True
 
 # -----------------------------------------------------------------------
-
