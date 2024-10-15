@@ -52,19 +52,41 @@ class DbgHooks(idaapi.DBG_Hooks):
         self.notify()
 
 # -----------------------------------------------------------------------
+def get_bitness():
+    # compatibility IDA 9.0 and above
+    if idaapi.IDA_SDK_VERSION >= 900:
+        import ida_ida
+        if ida_ida.inf_is_64bit():
+            return 64
+        elif ida_ida.inf_is_32bit_exactly():
+            return 32
+    else:
+        info = idaapi.get_inf_structure()
+        if info.is_64bit():
+            return 64
+        elif info.is_32bit():
+            return 32
+# -----------------------------------------------------------------------
 def get_ptrsize():
-    info = idaapi.get_inf_structure()
     ptr_size = None
-    if info.is_64bit():
+    bitness = get_bitness()
+    
+    if bitness == 64:
         ptr_size = 8
-    elif info.is_32bit():
+    elif bitness == 32:
         ptr_size = 4
     return ptr_size
 
 # -----------------------------------------------------------------------
 def supported_cpu():
-    info = idaapi.get_inf_structure()
-    cpuname = info.procname.lower()
+    cpuname = None
+    if idaapi.IDA_SDK_VERSION >= 900:
+        import ida_ida
+        cpuname = ida_ida.inf_get_procname().lower()
+    else:
+        info = idaapi.get_inf_structure()
+        cpuname = info.procname.lower()
+
     if cpuname == "metapc" or cpuname.startswith("arm") or cpuname.startswith("mips"):
         return True
     return False
@@ -154,22 +176,30 @@ def set_thread_info():
 def initialize():
     if m.initialized:
         return
-        
-    info = idaapi.get_inf_structure()
-    if info.is_64bit():
+    
+    bitness = get_bitness()
+    if bitness == 64:
         m.ptr_size = 8
         m.get_ptr = idc.get_qword
         m.mem_fmt = "%016X"
         m.pack_fmt = "<Q"
-    elif info.is_32bit():
+    elif bitness == 32:
         m.ptr_size = 4
         m.get_ptr = idc.get_wide_dword
         m.mem_fmt = "%08X"
         m.pack_fmt = "<L"
 
-    m.cpu_name = info.procname.lower()
-    m.is_be = idaapi.cvar.inf.is_be()
-    m.filetype = info.filetype
+    if idaapi.IDA_SDK_VERSION >= 900:
+        import ida_ida
+        m.cpu_name = ida_ida.inf_get_procname().lower()
+        m.is_be = ida_ida.inf_is_be()
+        m.filetype = ida_ida.inf_get_filetype()
+    else:
+        info = idaapi.get_inf_structure()
+        m.cpu_name = info.procname.lower()
+        m.is_be = idaapi.cvar.inf.is_be()
+        m.filetype = info.filetype
+        
     m.is_pefile = (m.filetype == idaapi.f_PE)
     m.thread_id = idaapi.get_current_thread()
 
