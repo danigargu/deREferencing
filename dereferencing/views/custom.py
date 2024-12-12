@@ -83,12 +83,16 @@ class CustViewer(idaapi.simplecustviewer_t, Colorizer):
         self.jumpto_in_view(widget, ea)
 
     def find_disass_view(self):
-        widget = idaapi.find_widget('IDA View-%s' % dbg.registers.pc)
+        widget = idaapi.find_widget(f'IDA View-{dbg.registers.pc}')
         if widget:
             return widget
 
-        for c in map(chr, range(65, 75)):
-            widget = idaapi.find_widget('IDA View-%s' % c)
+        widget = idaapi.find_widget('IDA View-EIP') # IDA < 9.0 called the windows "IDA View-EIP" even for x64 targets
+        if widget:
+            return widget
+
+        for c in map(chr, range(65, 91)):
+            widget = idaapi.find_widget(f'IDA View-{c}')
             if widget:
                 return widget
         return None
